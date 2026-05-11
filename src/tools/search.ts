@@ -32,16 +32,37 @@ export function registerSearchTools(server: McpServer, gh: GitHubClient, cache: 
     'wiki_search',
     {
       title: 'Search Wiki',
-      description: `Full-text BM25 search across all wiki pages using local SQLite FTS5 cache.
-
-If the cache is empty, automatically syncs from GitHub first (may take a moment on large wikis).
+      description: `Full-text BM25 search across all wiki pages using the local SQLite FTS5 cache. Automatically syncs from GitHub if the cache is empty on first call.
 
 Args:
-  - query: Search query (keywords or phrase)
-  - type: Filter results by page type (optional)
-  - limit: Max results to return (default 10)
+  - query (string): Keywords or phrase to search (1-500 chars)
+  - type (optional): Filter results to a specific page type
+  - limit (number): Max results to return (default 10, max 50)
 
-Returns: Array of { path, title, type, excerpt, rank } ordered by relevance.`,
+Returns:
+  {
+    "query": string,    // The search query
+    "count": number,    // Number of results returned
+    "results": [
+      {
+        "path": string,    // Page path e.g. "pages/concepts/transformers.md"
+        "title": string,   // Page title
+        "type": string,    // Page type
+        "excerpt": string, // Relevant snippet with match context
+        "rank": number     // BM25 relevance score (lower is more relevant)
+      }
+    ]
+  }
+
+Examples:
+  - Use when: "What does my wiki say about attention mechanisms?" → query="attention mechanism"
+  - Use when: "Find all entity pages about Andrej Karpathy" → query="Karpathy", type="entity"
+  - Use when: "Search for transformer papers I've ingested" → query="transformer", type="source"
+  - Don't use when: You want all pages of a type (use wiki_list_pages with type filter instead)
+
+Error Handling:
+  - Returns empty results with suggestion if query matches nothing
+  - Cache auto-syncs from GitHub if empty — first search on a new install may be slow`,
       inputSchema: z.object({
         query: z.string().min(1).max(500).describe('Search query'),
         type: z.enum(['entity', 'concept', 'topic', 'source', 'comparison', 'synthesis']).optional(),

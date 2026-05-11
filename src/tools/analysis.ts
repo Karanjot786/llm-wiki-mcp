@@ -62,18 +62,31 @@ export function registerAnalysisTools(server: McpServer, gh: GitHubClient): void
     'wiki_flag_contradiction',
     {
       title: 'Flag Contradiction',
-      description: `Record a contradiction between two wiki pages for later resolution.
+      description: `Record a contradiction between two wiki pages for later human or LLM resolution. Appends a structured entry to contradictions.md in the GitHub repo.
 
-Use this when a newly ingested source contradicts existing wiki content.
+Use this when a newly ingested source conflicts with existing wiki content. The contradiction is not automatically resolved — it is flagged for explicit review.
 
 Args:
-  - page_a: Path of first page
-  - claim_a: The claim made in page_a
-  - page_b: Path of second page (or source path)
-  - claim_b: The conflicting claim in page_b
-  - severity: How important this contradiction is to resolve
+  - page_a (string): Path of the first wiki page
+  - claim_a (string): The claim made in page_a
+  - page_b (string): Path of the second page or source
+  - claim_b (string): The conflicting claim in page_b
+  - severity ("low"|"medium"|"high"): How urgently this needs resolution (default: medium)
 
-Returns: { id, message }`,
+Returns:
+  {
+    "id": string,      // Contradiction ID e.g. "CONT-001-2026"
+    "message": string  // Confirmation message
+  }
+
+Examples:
+  - Use when: "The new source says GPT-4 has 1T params but my concept page says 170B" → flag with both pages and claims
+  - Use when: "Two entity pages contradict each other on a founding date" → flag severity="high"
+  - Don't use when: You want to see existing contradictions (use wiki_list_contradictions instead)
+
+Error Handling:
+  - Returns error if contradictions.md cannot be written (auth/network issue)
+  - IDs are sequential within a year (CONT-001-2026, CONT-002-2026, ...)`,
       inputSchema: z.object({
         page_a: z.string().describe('First page path'),
         claim_a: z.string().describe('Claim made in page_a'),

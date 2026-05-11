@@ -20,15 +20,38 @@ export function registerHealthTools(server: McpServer, gh: GitHubClient, cache: 
     'wiki_lint',
     {
       title: 'Lint Wiki',
-      description: `Run health checks across all wiki pages and return issues with improvement suggestions.
+      description: `Run health checks across all cached wiki pages and return issues with improvement suggestions. Reads from GitHub to verify source citations and link counts.
 
 Checks performed:
-- Orphan pages (no inbound links — may need linking)
-- Pages with no sources listed
-- Unresolved contradictions count
-- Pages with "needs_sources" status
+  - Pages with no source citations (rule: needs-citation)
+  - Orphan pages with no inbound links (rule: no-inbound-links, excludes synthesis pages)
+  - Pages marked needs_sources in status (rule: needs-sources-status)
+  - Unresolved contradictions in contradictions.md (rule: unresolved-contradictions)
 
-Returns: { issues, health_score, summary }`,
+Returns:
+  {
+    "health_score": number,   // 0-100 score (errors -10pts each, warnings -3pts each)
+    "total_pages": number,    // Total pages checked
+    "issue_count": number,    // Total issues found
+    "issues": [
+      {
+        "rule": string,     // Rule name e.g. "needs-citation"
+        "severity": string, // "error" or "warning"
+        "path": string,     // Affected page path
+        "message": string   // Human-readable description
+      }
+    ],
+    "summary": string         // One-line summary of wiki health
+  }
+
+Examples:
+  - Use when: "How healthy is my wiki?" → call with no args
+  - Use when: "Find pages that need more sources" → look for issues with rule="needs-citation"
+  - Don't use when: You just want page counts (use wiki_get_stats instead — much faster)
+
+Error Handling:
+  - Health score is based only on issues found; 100 means no issues detected
+  - Unreadable GitHub pages are silently skipped (network errors don't fail the check)`,
       inputSchema: z.object({}).strict(),
       outputSchema: z.object({
         health_score: z.number(),
@@ -111,9 +134,32 @@ Returns: { issues, health_score, summary }`,
     'wiki_get_stats',
     {
       title: 'Get Wiki Stats',
-      description: `Get overview statistics for the entire wiki: page counts by type, top linked pages, source count, and health score.
+      description: `Get overview statistics for the entire wiki from the local cache. Fast — no GitHub calls needed for basic counts.
 
-Returns: { total_pages, by_type, total_sources, health_score, top_linked }`,
+Returns:
+  {
+    "total_pages": number,              // All non-deleted pages
+    "by_type": { [type]: number },      // Count per page type
+    "total_sources": number,            // Number of ingested sources
+    "unresolved_contradictions": number,// Count from contradictions.md
+    "health_score": number,             // Approximate score (100 = no detected issues)
+    "top_linked": [
+      {
+        "path": string,         // Page path
+        "title": string,        // Page title
+        "inbound_links": number // Pages linking to this one
+      }
+    ]
+  }
+
+Examples:
+  - Use when: "How many pages does my wiki have?" → call with no args, read total_pages
+  - Use when: "Give me a wiki overview" → call with no args, show by_type breakdown
+  - Don't use when: You need detailed issue reports (use wiki_lint instead)
+
+Error Handling:
+  - unresolved_contradictions reads contradictions.md; returns 0 if file doesn't exist yet
+  - top_linked reads frontmatter from up to 20 pages; slower on large wikis`,
       inputSchema: z.object({}).strict(),
       outputSchema: z.object({
         total_pages: z.number(),

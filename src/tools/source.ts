@@ -82,22 +82,39 @@ export function registerSourceTools(server: McpServer, gh: GitHubClient, cache: 
     'wiki_add_source',
     {
       title: 'Add Source to Wiki',
-      description: `Fetch a URL or accept raw text as a new source, store a summary page in the wiki, and return the full content for Claude to process and integrate into existing wiki pages.
+      description: `Fetch a URL or accept raw text as a new wiki source. Stores a summary page in GitHub and returns the full fetched content for Claude to read and synthesize into existing wiki pages.
 
-This tool handles the storage step only. After calling this tool, Claude should:
+This tool handles storage only. After calling it, Claude should:
 1. Read the returned content
-2. Identify pages to create/update
+2. Identify pages to create or update
 3. Call wiki_create_page or wiki_update_page for each affected page
 4. Call wiki_append_log to record the session
 
 Args:
-  - type: "url" to fetch from the web, "text" to use raw_content directly
-  - url: The URL to fetch (required when type="url")
-  - raw_content: Raw text/markdown (required when type="text")
-  - title: Human-readable title for this source (required for type="text"; auto-derived for URLs)
-  - tags: Tags to apply to the source page
+  - type ("url"|"text"): Fetch from the web or use raw text directly
+  - url (string, optional): HTTPS URL to fetch — required when type="url"
+  - raw_content (string, optional): Raw markdown/text — required when type="text"
+  - title (string, optional): Human-readable title (auto-derived from URL if omitted)
+  - tags (string[]): Tags to apply to the source page
 
-Returns: { source_path, content, char_count } — content is the full fetched text for Claude to process.`,
+Returns:
+  {
+    "source_path": string,  // GitHub path where source page was stored
+    "content": string,      // Full fetched text for Claude to process
+    "char_count": number,   // Length of content in characters
+    "message": string       // Next-step instruction
+  }
+
+Examples:
+  - Use when: "Add this paper to my wiki: https://arxiv.org/abs/1706.03762" → type="url", url="https://arxiv.org/abs/1706.03762"
+  - Use when: "Summarize and store this paste of notes" → type="text", raw_content="...", title="Meeting Notes 2026-05"
+  - Don't use when: You just want to create a page without a source (use wiki_create_page instead)
+
+Error Handling:
+  - Returns "Error: url is required when type=url" if type="url" with no url
+  - Returns "Error: Only https:// URLs are allowed" for non-HTTPS URLs
+  - Returns "Error: Blocked: private/internal URL not allowed" for localhost/private IPs
+  - Returns "Error: HTTP 404 fetching ..." if URL returns an error status`,
       inputSchema: z.object({
         type: z.enum(['url', 'text']).describe('"url" to fetch, "text" to use raw_content'),
         url: z.string().url().optional().describe('URL to fetch (required if type="url")'),

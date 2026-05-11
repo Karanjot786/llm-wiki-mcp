@@ -51,19 +51,32 @@ export function registerPageTools(server: McpServer, gh: GitHubClient, cache: Wi
       title: 'Create Wiki Page',
       description: `Create a new markdown page in the wiki GitHub repo.
 
-The page will be stored at pages/{type}s/{slug}.md with YAML frontmatter.
-Use this after ingesting a source to create entity, concept, topic, or synthesis pages.
+The page is stored at pages/{type}s/{slug}.md with YAML frontmatter auto-generated from the inputs. The slug is derived from the title (lowercase, hyphens). Use after ingesting a source to record entities, concepts, topics, or synthesis pages.
 
 Args:
-  - type: Page category (entity|concept|topic|source|comparison|synthesis)
-  - title: Human-readable page title (used to derive filename slug)
-  - content: Full markdown body (do NOT include frontmatter — it is generated)
-  - tags: Array of topic tags
-  - sources: Array of source page paths that informed this page
-  - related_pages: Array of other page paths this page relates to
-  - status: Page completion status (default: draft)
+  - type ("entity"|"concept"|"topic"|"source"|"comparison"|"synthesis"): Page category
+  - title (string): Human-readable page title (becomes the filename slug)
+  - content (string): Full markdown body — do NOT include frontmatter, it is generated
+  - tags (string[]): Topic tags for search and filtering
+  - sources (string[]): Source page paths that informed this page (e.g. "pages/sources/my-paper-2026.md")
+  - related_pages (string[]): Paths to other pages this page links to
+  - status ("draft"|"complete"|"needs_sources"): Completion status (default: draft)
 
-Returns: { path, sha, message } on success, or error string.`,
+Returns:
+  {
+    "path": string,    // Full path in repo e.g. "pages/concepts/transformer-architecture.md"
+    "sha": string,     // GitHub blob SHA
+    "message": string  // Confirmation message
+  }
+
+Examples:
+  - Use when: "Create a concept page for Transformer Architecture" → type="concept", title="Transformer Architecture", content="..."
+  - Use when: "Add Andrej Karpathy as an entity" → type="entity", title="Andrej Karpathy", content="..."
+  - Don't use when: The page already exists (use wiki_update_page instead)
+
+Error Handling:
+  - Returns "Error: GitHub auth failed. Run: gh auth login" if not authenticated
+  - Returns "Error: Conflict writing ... — SHA mismatch, retry" on concurrent write conflict`,
       inputSchema: z.object({
         type: z.enum(['entity', 'concept', 'topic', 'source', 'comparison', 'synthesis'])
           .describe('Page category'),
