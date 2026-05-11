@@ -1,0 +1,42 @@
+<evaluation>
+  <qa_pair>
+    <question>When the wiki_search tool is called on an empty wiki (no pages have been added yet), what does it do before returning results? What is the name of the automatic operation it performs?</question>
+    <answer>sync</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>The wiki_lint tool checks four types of health issues. One checks for pages that have zero inbound connections to them — what is the exact rule name string for this check?</question>
+    <answer>no-inbound-links</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>When calling wiki_add_source with type="url" and a URL that uses the HTTP protocol (not HTTPS), what specific error phrase appears in the returned error message?</question>
+    <answer>Only https:// URLs are allowed</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>The contradiction ID format used by wiki_flag_contradiction includes a zero-padded sequential number and the year. For the very first contradiction flagged in the year 2026, what would the ID be?</question>
+    <answer>CONT-001-2026</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>wiki_get_stats reads the contradictions file to populate one of its returned fields. If the contradictions.md file does not exist yet (fresh wiki), what numeric value does that field contain?</question>
+    <answer>0</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>The wiki_lint health score uses a penalty system. An error costs 10 points and a warning costs 3 points. If a wiki has exactly 2 errors and 5 warnings and the total page count is 20, what is the health score?</question>
+    <answer>65</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>The wiki has six page types organized into directories. What is the directory path used to store pages of type "synthesis"?</question>
+    <answer>pages/synthesis</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>wiki_resolve_contradiction requires the resolution text to meet a minimum length constraint. What is the minimum number of characters required for the resolution field?</question>
+    <answer>10</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>The wiki MCP server requires two environment variables to start. One is WIKI_GITHUB_OWNER. What is the exact name of the second required environment variable?</question>
+    <answer>WIKI_GITHUB_REPO</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>When wiki_append_log is called, entries are stored in newest-first order. If three entries are appended sequentially, which entry appears first in log.md — the oldest or the newest?</question>
+    <answer>newest</answer>
+  </qa_pair>
+</evaluation>
