@@ -22,7 +22,34 @@ export function buildSourceFrontmatter(title: string, url: string, sourceType: s
   };
 }
 
+function validatePublicUrl(url: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(`Invalid URL: ${url}`);
+  }
+  if (parsed.protocol !== 'https:') {
+    throw new Error('Only https:// URLs are allowed');
+  }
+  const host = parsed.hostname.toLowerCase();
+  const privatePatterns = [
+    /^localhost$/,
+    /^127\./,
+    /^10\./,
+    /^192\.168\./,
+    /^172\.(1[6-9]|2\d|3[01])\./,
+    /^169\.254\./,
+    /^::1$/,
+    /^fc[0-9a-f]{2}:/i,
+  ];
+  if (privatePatterns.some(p => p.test(host))) {
+    throw new Error(`Blocked: private/internal URL not allowed`);
+  }
+}
+
 async function fetchUrl(url: string): Promise<string> {
+  validatePublicUrl(url);
   const res = await fetch(url, {
     headers: { 'User-Agent': 'llm-wiki-mcp/1.0' },
     signal: AbortSignal.timeout(15_000),
@@ -122,7 +149,7 @@ Returns: { source_path, content, char_count } — content is the full fetched te
     async ({ limit }) => {
       try {
         const sources = cache.listByType('source').slice(0, limit);
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ count: sources.length, sources: sources.map(s => ({ path: s.path, title: s.title, updated: s.updated, tags: JSON.parse(s.tags as string) })) }) }] };
+        return { content: [{ type: 'text' as const, text: JSON.stringify({ count: sources.length, sources: sources.map(s => ({ path: s.path, title: s.title, updated: s.updated, tags: JSON.parse(s.tags as string) as string[] })) }) }] };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }

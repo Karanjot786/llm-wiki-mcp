@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { generateSourceId, buildSourceFrontmatter } from '../../tools/source.js';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { generateSourceId, buildSourceFrontmatter, registerSourceTools } from '../../tools/source.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 describe('source tool helpers', () => {
   it('generateSourceId produces slug from title', () => {
@@ -19,5 +20,68 @@ describe('source tool helpers', () => {
     expect(fm.type).toBe('source');
     expect(fm.title).toBe('Test Source');
     expect(fm.status).toBe('complete');
+  });
+});
+
+// Helper: create a minimal mock server that captures tool handlers
+function makeTestServer() {
+  const handlers = new Map<string, (args: Record<string, unknown>) => Promise<{ content: Array<{ type: string; text: string }> }>>();
+  const server = {
+    registerTool: (name: string, _config: unknown, handler: (args: Record<string, unknown>) => Promise<unknown>) => {
+      handlers.set(name, handler as (args: Record<string, unknown>) => Promise<{ content: Array<{ type: string; text: string }> }>);
+    },
+  } as unknown as McpServer;
+  return { server, handlers };
+}
+
+function makeMockGh() {
+  return {
+    writeFile: vi.fn().mockResolvedValue('sha123'),
+    readFile: vi.fn(),
+  };
+}
+
+function makeMockCache() {
+  return {
+    upsert: vi.fn(),
+    listByType: vi.fn().mockReturnValue([]),
+  };
+}
+
+describe('wiki_add_source handler', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('returns error when type="url" but url is missing', async () => {
+    const { server, handlers } = makeTestServer();
+    registerSourceTools(server, makeMockGh() as never, makeMockCache() as never);
+    const handler = handlers.get('wiki_add_source')!;
+    const result = await handler({ type: 'url', tags: [] });
+    expect(result.content[0].text).toContain('url is required');
+  });
+
+  it('returns error when type="text" but raw_content is missing', async () => {
+    const { server, handlers } = makeTestServer();
+    registerSourceTools(server, makeMockGh() as never, makeMockCache() as never);
+    const handler = handlers.get('wiki_add_source')!;
+    const result = await handler({ type: 'text', tags: [] });
+    expect(result.content[0].text).toContain('raw_content is required');
+  });
+
+  it('returns error when https URL is not used (SSRF protection)', async () => {
+    const { server, handlers } = makeTestServer();
+    registerSourceTools(server, makeMockGh() as never, makeMockCache() as never);
+    const handler = handlers.get('wiki_add_source')!;
+    const result = await handler({ type: 'url', url: 'http://example.com', tags: [] });
+    expect(result.content[0].text).toContain('Only https://');
+  });
+
+  it('returns error for localhost URL (SSRF protection)', async () => {
+    const { server, handlers } = makeTestServer();
+    registerSourceTools(server, makeMockGh() as never, makeMockCache() as never);
+    const handler = handlers.get('wiki_add_source')!;
+    const result = await handler({ type: 'url', url: 'https://localhost/secret', tags: [] });
+    expect(result.content[0].text).toContain('Blocked');
   });
 });
