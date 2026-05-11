@@ -19,21 +19,7 @@ export function slugify(title: string): string {
 }
 
 export function buildPageContent(fm: WikiPageFrontmatter, body: string): string {
-  const fmStr = [
-    '---',
-    `title: ${fm.title}`,
-    `type: ${fm.type}`,
-    `created: "${fm.created}"`,
-    `updated: "${fm.updated}"`,
-    `sources: [${fm.sources.map(s => `"${s}"`).join(', ')}]`,
-    `tags: [${fm.tags.map(t => `${t}`).join(', ')}]`,
-    `status: ${fm.status}`,
-    `related_pages: [${fm.related_pages.map(p => `"${p}"`).join(', ')}]`,
-    `inbound_links_count: ${fm.inbound_links_count}`,
-    `outbound_links_count: ${fm.outbound_links_count}`,
-    '---',
-  ].join('\n');
-  return `${fmStr}\n${body}`;
+  return matter.stringify(body, fm as unknown as Record<string, unknown>);
 }
 
 export function parsePage(raw: string): { frontmatter: WikiPageFrontmatter; content: string } {

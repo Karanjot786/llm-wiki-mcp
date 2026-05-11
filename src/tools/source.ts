@@ -42,6 +42,7 @@ function validatePublicUrl(url: string): void {
     /^169\.254\./,
     /^::1$/,
     /^fc[0-9a-f]{2}:/i,
+    /^0\.0\.0\.0$/,
   ];
   if (privatePatterns.some(p => p.test(host))) {
     throw new Error(`Blocked: private/internal URL not allowed`);
@@ -53,7 +54,22 @@ async function fetchUrl(url: string): Promise<string> {
   const res = await fetch(url, {
     headers: { 'User-Agent': 'llm-wiki-mcp/1.0' },
     signal: AbortSignal.timeout(15_000),
+    redirect: 'manual',
   });
+  // Manual redirect handling — re-validate Location header
+  if (res.status >= 300 && res.status < 400) {
+    const location = res.headers.get('location');
+    if (!location) throw new Error('Redirect with no Location header');
+    validatePublicUrl(location); // throws if redirect target is private
+    const finalRes = await fetch(location, {
+      headers: { 'User-Agent': 'llm-wiki-mcp/1.0' },
+      signal: AbortSignal.timeout(15_000),
+      redirect: 'manual', // only follow one level
+    });
+    if (!finalRes.ok) throw new Error(`HTTP ${finalRes.status} fetching ${location}`);
+    const text = await finalRes.text();
+    return text.replace(/<[^>]+>/g, ' ').replace(/\s{2,}/g, ' ').slice(0, CHARACTER_LIMIT);
+  }
   if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
   const text = await res.text();
   // Strip HTML tags for readability

@@ -84,4 +84,12 @@ describe('wiki_add_source handler', () => {
     const result = await handler({ type: 'url', url: 'https://localhost/secret', tags: [] });
     expect(result.content[0].text).toContain('Blocked');
   });
+
+  it('returns error for 0.0.0.0 URL (SSRF protection)', async () => {
+    const { server, handlers } = makeTestServer();
+    registerSourceTools(server, makeMockGh() as never, makeMockCache() as never);
+    const handler = handlers.get('wiki_add_source')!;
+    const result = await handler({ type: 'url', url: 'https://0.0.0.0/test', tags: [] });
+    expect(result.content[0].text).toContain('Blocked');
+  });
 });
