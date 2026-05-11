@@ -2,7 +2,7 @@ export type PageType = 'entity' | 'concept' | 'topic' | 'source' | 'comparison' 
 export type PageStatus = 'draft' | 'complete' | 'needs_sources' | 'deleted';
 export type ContradictionStatus = 'unresolved' | 'resolved';
 export type ContradictionSeverity = 'low' | 'medium' | 'high';
-export type LogOperation = 'ingest' | 'query' | 'update' | 'lint' | 'create' | 'delete' | 'schema';
+export type LogOperation = 'ingest' | 'query' | 'update' | 'lint' | 'create' | 'delete' | 'schema' | 'read';
 
 export interface WikiPageFrontmatter {
   title: string;
@@ -59,6 +59,7 @@ export interface LintIssue {
   severity: 'warning' | 'error';
   path: string;
   message: string;
+  line_number?: number;
 }
 
 export interface WikiStats {

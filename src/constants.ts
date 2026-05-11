@@ -1,6 +1,9 @@
+import type { PageType } from './types.js';
+
+/** Maximum characters for source content fetched by wiki_add_source and returned in tool responses. */
 export const CHARACTER_LIMIT = 25_000;
 
-export const PAGE_TYPES: readonly string[] = [
+export const PAGE_TYPES: readonly PageType[] = [
   'entity', 'concept', 'topic', 'source', 'comparison', 'synthesis'
 ] as const;
 
