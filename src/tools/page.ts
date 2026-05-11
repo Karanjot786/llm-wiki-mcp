@@ -74,6 +74,7 @@ Returns: { path, sha, message } on success, or error string.`,
         related_pages: z.array(z.string()).default([]).describe('Related page paths'),
         status: z.enum(['draft', 'complete', 'needs_sources']).default('draft').describe('Completion status'),
       }).strict(),
+      outputSchema: z.object({ path: z.string(), sha: z.string(), message: z.string() }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
     async ({ type, title, content, tags, sources, related_pages, status }) => {
@@ -90,7 +91,8 @@ Returns: { path, sha, message } on success, or error string.`,
         const sha = await gh.writeFile(path, raw, `wiki: create ${type} page "${title}"`);
         const page: WikiPage = { path, sha, frontmatter: fm, content, raw };
         cache.upsert(page);
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ path, sha, message: `Created ${path}` }) }] };
+        const output = { path, sha, message: `Created ${path}` };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }
@@ -123,6 +125,7 @@ Returns: { path, sha, message } on success.`,
         related_pages: z.array(z.string()).optional(),
         status: z.enum(['draft', 'complete', 'needs_sources', 'deleted']).optional(),
       }).strict(),
+      outputSchema: z.object({ path: z.string(), sha: z.string(), message: z.string() }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async ({ path, content, tags, sources, related_pages, status }) => {
@@ -141,7 +144,8 @@ Returns: { path, sha, message } on success.`,
         const newSha = await gh.writeFile(path, raw, `wiki: update "${fm.title}"`, existingSha);
         const page: WikiPage = { path, sha: newSha, frontmatter: fm, content, raw };
         cache.upsert(page);
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ path, sha: newSha, message: `Updated ${path}` }) }] };
+        const output = { path, sha: newSha, message: `Updated ${path}` };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }
@@ -162,13 +166,20 @@ Returns: { path, frontmatter, content, sha }`,
       inputSchema: z.object({
         path: z.string().regex(/^[a-zA-Z0-9_./-]+$/, 'Invalid path characters').refine(p => !p.includes('..'), 'Path traversal not allowed').describe('Full page path'),
       }).strict(),
+      outputSchema: z.object({
+        path: z.string(),
+        sha: z.string(),
+        frontmatter: z.record(z.unknown()),
+        content: z.string(),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async ({ path }) => {
       try {
         const { content: raw, sha } = await gh.readFile(path);
         const { frontmatter, content } = parsePage(raw);
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ path, sha, frontmatter, content }) }] };
+        const output = { path, sha, frontmatter: frontmatter as unknown as Record<string, unknown>, content };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }
@@ -193,6 +204,13 @@ Returns: Array of { path, title, type, status, updated, tags }`,
         tag: z.string().optional().describe('Filter pages containing this tag'),
         limit: z.number().int().min(1).max(200).default(50),
       }).strict(),
+      outputSchema: z.object({
+        count: z.number(),
+        pages: z.array(z.object({
+          path: z.string(), title: z.string(), type: z.string(),
+          status: z.string(), updated: z.string(), tags: z.array(z.string()),
+        })),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async ({ type, tag, limit }) => {
@@ -204,7 +222,8 @@ Returns: Array of { path, title, type, status, updated, tags }`,
           path: r.path, title: r.title, type: r.type,
           status: r.status, updated: r.updated, tags: JSON.parse(r.tags as string),
         }));
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ count: result.length, pages: result }) }] };
+        const output = { count: result.length, pages: result };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }
@@ -227,6 +246,7 @@ Returns: { path, message } on success.`,
         path: z.string().regex(/^[a-zA-Z0-9_./-]+$/, 'Invalid path characters').refine(p => !p.includes('..'), 'Path traversal not allowed').describe('Full page path to delete'),
         reason: z.string().describe('Reason for deletion'),
       }).strict(),
+      outputSchema: z.object({ path: z.string(), message: z.string() }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     },
     async ({ path, reason }) => {
@@ -237,7 +257,8 @@ Returns: { path, message } on success.`,
         const newRaw = buildPageContent(fm, content);
         await gh.writeFile(path, newRaw, `wiki: delete "${frontmatter.title}" — ${reason}`, sha);
         cache.remove(path);
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ path, message: `Soft-deleted ${path}` }) }] };
+        const output = { path, message: `Soft-deleted ${path}` };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }

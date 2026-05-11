@@ -105,6 +105,12 @@ Returns: { source_path, content, char_count } — content is the full fetched te
         title: z.string().optional().describe('Title for this source'),
         tags: z.array(z.string()).default([]).describe('Tags for the source page'),
       }).strict(),
+      outputSchema: z.object({
+        source_path: z.string(),
+        content: z.string(),
+        char_count: z.number(),
+        message: z.string(),
+      }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
     async ({ type, url, raw_content, title, tags }) => {
@@ -138,13 +144,15 @@ Returns: { source_path, content, char_count } — content is the full fetched te
         const page = { path: sourcePath, sha, frontmatter: fm, content: body, raw };
         cache.upsert(page);
 
+        const output = {
+          source_path: sourcePath,
+          content,
+          char_count: content.length,
+          message: `Source stored at ${sourcePath}. Process content and update wiki pages.`,
+        };
         return {
-          content: [{ type: 'text' as const, text: JSON.stringify({
-            source_path: sourcePath,
-            content,
-            char_count: content.length,
-            message: `Source stored at ${sourcePath}. Process content and update wiki pages.`,
-          }) }],
+          content: [{ type: 'text' as const, text: JSON.stringify(output) }],
+          structuredContent: output,
         };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
@@ -160,12 +168,17 @@ Returns: { source_path, content, char_count } — content is the full fetched te
       inputSchema: z.object({
         limit: z.number().int().min(1).max(100).default(20),
       }).strict(),
+      outputSchema: z.object({
+        count: z.number(),
+        sources: z.array(z.object({ path: z.string(), title: z.string(), updated: z.string(), tags: z.array(z.string()) })),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async ({ limit }) => {
       try {
         const sources = cache.listByType('source').slice(0, limit);
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ count: sources.length, sources: sources.map(s => ({ path: s.path, title: s.title, updated: s.updated, tags: JSON.parse(s.tags as string) as string[] })) }) }] };
+        const output = { count: sources.length, sources: sources.map(s => ({ path: s.path, title: s.title, updated: s.updated, tags: JSON.parse(s.tags as string) as string[] })) };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }
@@ -180,12 +193,13 @@ Returns: { source_path, content, char_count } — content is the full fetched te
       inputSchema: z.object({
         path: z.string().regex(/^[a-zA-Z0-9_./-]+$/, 'Invalid path characters').refine(p => !p.includes('..'), 'Path traversal not allowed').describe('Source page path e.g. "pages/sources/my-article-2026.md"'),
       }).strict(),
+      outputSchema: z.object({ content: z.string() }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async ({ path }) => {
       try {
-        const { content } = await gh.readFile(path);
-        return { content: [{ type: 'text' as const, text: content }] };
+        const { content: pageContent } = await gh.readFile(path);
+        return { content: [{ type: 'text' as const, text: pageContent }], structuredContent: { content: pageContent } };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }

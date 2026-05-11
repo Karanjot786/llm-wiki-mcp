@@ -47,6 +47,11 @@ Returns: Array of { path, title, type, excerpt, rank } ordered by relevance.`,
         type: z.enum(['entity', 'concept', 'topic', 'source', 'comparison', 'synthesis']).optional(),
         limit: z.number().int().min(1).max(50).default(10),
       }).strict(),
+      outputSchema: z.object({
+        query: z.string(),
+        count: z.number(),
+        results: z.array(z.object({ path: z.string(), title: z.string(), type: z.string(), excerpt: z.string(), rank: z.number() })),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async ({ query, type, limit }) => {
@@ -62,9 +67,13 @@ Returns: Array of { path, title, type, excerpt, rank } ordered by relevance.`,
         results = results.slice(0, limit);
 
         if (results.length === 0) {
-          return { content: [{ type: 'text' as const, text: `No results found for "${query}". Try different keywords or call wiki_sync_cache to refresh.` }] };
+          return {
+            content: [{ type: 'text' as const, text: `No results found for "${query}". Try different keywords or call wiki_sync_cache to refresh.` }],
+            structuredContent: { query, count: 0, results: [] },
+          };
         }
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ query, count: results.length, results }) }] };
+        const output = { query, count: results.length, results };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }
@@ -79,12 +88,14 @@ Returns: Array of { path, title, type, excerpt, rank } ordered by relevance.`,
 
 Returns: { pages_synced, message }`,
       inputSchema: z.object({}).strict(),
+      outputSchema: z.object({ pages_synced: z.number(), message: z.string() }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async () => {
       try {
         const count = await syncAllPages(gh, cache);
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ pages_synced: count, message: `Cache synced: ${count} pages indexed` }) }] };
+        const output = { pages_synced: count, message: `Cache synced: ${count} pages indexed` };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }

@@ -30,6 +30,13 @@ Checks performed:
 
 Returns: { issues, health_score, summary }`,
       inputSchema: z.object({}).strict(),
+      outputSchema: z.object({
+        health_score: z.number(),
+        total_pages: z.number(),
+        issue_count: z.number(),
+        issues: z.array(z.object({ rule: z.string(), severity: z.string(), path: z.string(), message: z.string() })),
+        summary: z.string(),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async () => {
@@ -92,7 +99,8 @@ Returns: { issues, health_score, summary }`,
           ? `Wiki is healthy! ${allPages.length} pages, no issues.`
           : `${issues.length} issue(s) found across ${allPages.length} pages. Health score: ${healthScore}/100`;
 
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ health_score: healthScore, total_pages: allPages.length, issue_count: issues.length, issues, summary }) }] };
+        const output = { health_score: healthScore, total_pages: allPages.length, issue_count: issues.length, issues, summary };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }
@@ -107,6 +115,14 @@ Returns: { issues, health_score, summary }`,
 
 Returns: { total_pages, by_type, total_sources, health_score, top_linked }`,
       inputSchema: z.object({}).strict(),
+      outputSchema: z.object({
+        total_pages: z.number(),
+        by_type: z.record(z.number()),
+        total_sources: z.number(),
+        unresolved_contradictions: z.number(),
+        health_score: z.number(),
+        top_linked: z.array(z.object({ path: z.string(), title: z.string(), inbound_links: z.number() })),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async () => {
@@ -147,7 +163,7 @@ Returns: { total_pages, by_type, total_sources, health_score, top_linked }`,
           top_linked: topLinked,
         };
 
-        return { content: [{ type: 'text' as const, text: JSON.stringify(stats) }] };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(stats) }], structuredContent: stats as unknown as Record<string, unknown> };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }

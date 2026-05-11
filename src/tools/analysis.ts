@@ -81,6 +81,7 @@ Returns: { id, message }`,
         claim_b: z.string().describe('Conflicting claim in page_b'),
         severity: z.enum(['low', 'medium', 'high']).default('medium'),
       }).strict(),
+      outputSchema: z.object({ id: z.string(), message: z.string() }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
     async ({ page_a, claim_a, page_b, claim_b, severity }) => {
@@ -106,7 +107,8 @@ Returns: { id, message }`,
         const updated = existingContent + newBlock;
         await gh.writeFile(WIKI_SPECIAL_FILES.contradictions, updated, `wiki: flag contradiction ${id}`, existingSha);
 
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ id, message: `Contradiction ${id} flagged for resolution` }) }] };
+        const output = { id, message: `Contradiction ${id} flagged for resolution` };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }
@@ -126,6 +128,14 @@ Returns: Array of contradiction objects.`,
       inputSchema: z.object({
         status: z.enum(['unresolved', 'resolved', 'all']).default('unresolved'),
       }).strict(),
+      outputSchema: z.object({
+        count: z.number(),
+        contradictions: z.array(z.object({
+          id: z.string(), status: z.string(), severity: z.string(),
+          page_a: z.string(), claim_a: z.string(), page_b: z.string(), claim_b: z.string(),
+          created: z.string(),
+        })),
+      }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async ({ status }) => {
@@ -133,9 +143,11 @@ Returns: Array of contradiction objects.`,
         const { content } = await gh.readFile(WIKI_SPECIAL_FILES.contradictions);
         let items = parseContradictions(content);
         if (status !== 'all') items = items.filter(c => c.status === status);
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ count: items.length, contradictions: items }) }] };
+        const output = { count: items.length, contradictions: items };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch {
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ count: 0, contradictions: [], message: 'No contradictions recorded yet' }) }] };
+        const output = { count: 0, contradictions: [] };
+        return { content: [{ type: 'text' as const, text: JSON.stringify({ ...output, message: 'No contradictions recorded yet' }) }], structuredContent: output };
       }
     }
   );
@@ -155,6 +167,7 @@ Returns: { id, message }`,
         id: z.string().describe('Contradiction ID'),
         resolution: z.string().min(10).describe('How this was resolved'),
       }).strict(),
+      outputSchema: z.object({ id: z.string(), message: z.string() }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async ({ id, resolution }) => {
@@ -172,7 +185,8 @@ Returns: { id, message }`,
         const updated = (header || CONT_HEADER) + '\n' + items.map(formatContradiction).join('');
         await gh.writeFile(WIKI_SPECIAL_FILES.contradictions, updated, `wiki: resolve contradiction ${id}`, sha);
 
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ id, message: `Contradiction ${id} resolved` }) }] };
+        const output = { id, message: `Contradiction ${id} resolved` };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }

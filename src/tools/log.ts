@@ -56,6 +56,7 @@ Returns: { message } on success.`,
         pages_affected: z.array(z.string()).optional().describe('Page paths touched'),
         details: z.string().optional().describe('Additional markdown details'),
       }).strict(),
+      outputSchema: z.object({ message: z.string() }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
     async ({ operation, description, pages_affected, details }) => {
@@ -86,7 +87,8 @@ Returns: { message } on success.`,
         const updated = header + newSection + body;
 
         await gh.writeFile(WIKI_SPECIAL_FILES.log, updated, `wiki: log ${operation}`, existingSha);
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ message: 'Log entry appended' }) }] };
+        const output = { message: 'Log entry appended' };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
       }
@@ -108,6 +110,7 @@ Returns: Array of recent log entry strings.`,
         limit: z.number().int().min(1).max(100).default(10),
         operation: z.enum(['ingest', 'query', 'update', 'lint', 'create', 'delete', 'schema']).optional(),
       }).strict(),
+      outputSchema: z.object({ count: z.number(), entries: z.array(z.string()) }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async ({ limit, operation }) => {
@@ -116,7 +119,8 @@ Returns: Array of recent log entry strings.`,
         let entries = parseLogEntries(content);
         if (operation) entries = entries.filter(e => e.includes(`] ${operation} |`));
         entries = entries.slice(0, limit);
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ count: entries.length, entries }) }] };
+        const output = { count: entries.length, entries };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: `No log found yet. Call wiki_append_log to create it.` }] };
       }
