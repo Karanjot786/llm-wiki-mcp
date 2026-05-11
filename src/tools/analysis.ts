@@ -18,6 +18,8 @@ function parseContradictions(content: string): Contradiction[] {
     const claimAMatch = block.match(/\*\*Claim A:\*\* (.+)/);
     const claimBMatch = block.match(/\*\*Claim B:\*\* (.+)/);
     const createdMatch = block.match(/\*\*Created:\*\* (.+)/);
+    const resolutionMatch = block.match(/\*\*Resolution:\*\* (.+)/);
+    const resolvedAtMatch = block.match(/\*\*Resolved At:\*\* (.+)/);
     return {
       id: idMatch?.[1] ?? 'CONT-unknown',
       status: (statusMatch?.[1] ?? 'unresolved') as Contradiction['status'],
@@ -27,6 +29,8 @@ function parseContradictions(content: string): Contradiction[] {
       claim_a: claimAMatch?.[1]?.trim() ?? '',
       claim_b: claimBMatch?.[1]?.trim() ?? '',
       created: createdMatch?.[1]?.trim() ?? '',
+      ...(resolutionMatch?.[1] && { resolution: resolutionMatch[1].trim() }),
+      ...(resolvedAtMatch?.[1] && { resolved_at: resolvedAtMatch[1].trim() }),
     };
   });
 }

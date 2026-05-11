@@ -34,7 +34,7 @@ export interface SearchResult {
 }
 
 export interface Contradiction {
-  id: string;             // e.g. "CONT-2026-001"
+  id: string;             // e.g. "CONT-001-2026"
   page_a: string;
   claim_a: string;
   page_b: string;
