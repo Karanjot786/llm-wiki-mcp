@@ -61,15 +61,15 @@ Returns: { issues, health_score, summary }`,
                 });
               }
             } catch { /* skip unreadable pages */ }
-          }
 
-          if (page.status === 'needs_sources') {
-            issues.push({
-              rule: 'needs-sources-status',
-              severity: 'warning',
-              path: page.path,
-              message: `Page "${page.title}" is marked as needing more sources`,
-            });
+            if (page.status === 'needs_sources') {
+              issues.push({
+                rule: 'needs-sources-status',
+                severity: 'warning',
+                path: page.path,
+                message: `Page "${page.title}" is marked as needing more sources`,
+              });
+            }
           }
         }
 
@@ -116,17 +116,34 @@ Returns: { total_pages, by_type, total_sources, health_score, top_linked }`,
         const total = allPages.length;
         const sources = byType['source'] ?? 0;
 
-        const topLinked = allPages
-          .filter(p => p.type !== 'source')
-          .slice(0, 5)
-          .map(p => ({ path: p.path, title: p.title, inbound_links: 0 }));
+        let unresolvedContradictions = 0;
+        try {
+          const { content: contContent } = await gh.readFile(WIKI_SPECIAL_FILES.contradictions);
+          unresolvedContradictions = (contContent.match(/\*\*Status:\*\* unresolved/gi) || []).length;
+        } catch { /* no contradictions file yet */ }
+
+        // Read inbound_links_count from frontmatter for top candidates
+        const candidates = allPages.filter(p => p.type !== 'source').slice(0, 20);
+        const topLinkedRaw: Array<{ path: string; title: string; inbound_links: number }> = [];
+        for (const p of candidates) {
+          try {
+            const { content: raw } = await gh.readFile(p.path);
+            const { frontmatter } = parsePage(raw);
+            topLinkedRaw.push({ path: p.path, title: p.title, inbound_links: frontmatter.inbound_links_count });
+          } catch {
+            topLinkedRaw.push({ path: p.path, title: p.title, inbound_links: 0 });
+          }
+        }
+        const topLinked = topLinkedRaw
+          .sort((a, b) => b.inbound_links - a.inbound_links)
+          .slice(0, 5);
 
         const stats: WikiStats = {
           total_pages: total,
           by_type: byType as Record<PageType, number>,
           total_sources: sources,
-          unresolved_contradictions: 0,
-          health_score: total === 0 ? 100 : 80,
+          unresolved_contradictions: unresolvedContradictions,
+          health_score: computeHealthScore([], total),
           top_linked: topLinked,
         };
 
