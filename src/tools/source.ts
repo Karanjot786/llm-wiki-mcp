@@ -162,7 +162,7 @@ Returns: { source_path, content, char_count } — content is the full fetched te
       title: 'Get Wiki Source',
       description: 'Read a specific source summary page by path.',
       inputSchema: z.object({
-        path: z.string().describe('Source page path e.g. "pages/sources/my-article-2026.md"'),
+        path: z.string().regex(/^[a-zA-Z0-9_./-]+$/, 'Invalid path characters').refine(p => !p.includes('..'), 'Path traversal not allowed').describe('Source page path e.g. "pages/sources/my-article-2026.md"'),
       }).strict(),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },

@@ -130,7 +130,7 @@ Args:
 
 Returns: { path, sha, message } on success.`,
       inputSchema: z.object({
-        path: z.string().describe('Full page path e.g. "pages/concepts/machine-learning.md"'),
+        path: z.string().regex(/^[a-zA-Z0-9_./-]+$/, 'Invalid path characters').refine(p => !p.includes('..'), 'Path traversal not allowed').describe('Full page path e.g. "pages/concepts/machine-learning.md"'),
         content: z.string().min(1).describe('New markdown body'),
         tags: z.array(z.string()).optional(),
         sources: z.array(z.string()).optional(),
@@ -174,7 +174,7 @@ Args:
 
 Returns: { path, frontmatter, content, sha }`,
       inputSchema: z.object({
-        path: z.string().describe('Full page path'),
+        path: z.string().regex(/^[a-zA-Z0-9_./-]+$/, 'Invalid path characters').refine(p => !p.includes('..'), 'Path traversal not allowed').describe('Full page path'),
       }).strict(),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
@@ -238,7 +238,7 @@ Args:
 
 Returns: { path, message } on success.`,
       inputSchema: z.object({
-        path: z.string().describe('Full page path to delete'),
+        path: z.string().regex(/^[a-zA-Z0-9_./-]+$/, 'Invalid path characters').refine(p => !p.includes('..'), 'Path traversal not allowed').describe('Full page path to delete'),
         reason: z.string().describe('Reason for deletion'),
       }).strict(),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },

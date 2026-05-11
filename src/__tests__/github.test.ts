@@ -26,14 +26,22 @@ describe('GitHubClient', () => {
     );
   });
 
-  it('writeFile creates new file with PUT', async () => {
+  it('writeFile creates new file with PUT via stdin JSON', async () => {
     mockExec.mockReturnValue(JSON.stringify({ content: { sha: 'newsha456' } }));
     const sha = await client.writeFile('pages/new.md', '# New Page', 'feat: add new page');
     expect(sha).toBe('newsha456');
     expect(mockExec).toHaveBeenCalledWith(
       expect.stringContaining('--method PUT'),
-      expect.any(Object)
+      expect.objectContaining({ input: expect.stringContaining('"message"') })
     );
+  });
+
+  it('validatePath rejects path traversal', async () => {
+    await expect(client.readFile('../../../etc/passwd')).rejects.toThrow('path traversal');
+  });
+
+  it('validatePath rejects shell-special chars', async () => {
+    await expect(client.readFile('pages/$(evil).md')).rejects.toThrow('Invalid path');
   });
 
   it('listFiles returns array of file entries', async () => {
