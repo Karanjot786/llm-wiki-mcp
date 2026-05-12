@@ -1,6 +1,6 @@
 {
   "name": "wiki-hub-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server implementing Karpathy's LLM Wiki pattern. GitHub-backed persistent wiki with BM25 full-text search.",
   "author": "Karanjot Singh",
   "repository": {
