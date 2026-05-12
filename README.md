@@ -1,4 +1,4 @@
-# llm-wiki-mcp
+# wiki-hub-mcp
 
 Build a personal wiki with your LLM. Based on [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f): your LLM reads sources and writes structured pages to a GitHub repo. You ask questions; it searches and synthesizes. No RAG pipeline, no vector database. The knowledge builds up as plain markdown files you own.
 
@@ -15,9 +15,9 @@ This config works in most clients. Add it to your MCP config file:
 ```json
 {
   "mcpServers": {
-    "llm-wiki": {
+    "wiki-hub": {
       "command": "npx",
-      "args": ["-y", "llm-wiki-mcp"],
+      "args": ["-y", "wiki-hub-mcp"],
       "env": {
         "WIKI_GITHUB_OWNER": "your-github-username",
         "WIKI_GITHUB_REPO": "my-wiki"
@@ -30,7 +30,7 @@ This config works in most clients. Add it to your MCP config file:
 Prefer a setup wizard? Run this and pick your client:
 
 ```bash
-npx -y llm-wiki-mcp install
+npx -y wiki-hub-mcp install
 ```
 
 ```
@@ -41,7 +41,7 @@ npx -y llm-wiki-mcp install
   5. VS Code / Copilot     0. All clients
 ```
 
-[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp/install%3F%257B%2522name%2522%253A%2522llm-wiki%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522-y%2522%252C%2522llm-wiki-mcp%2522%255D%252C%2522env%2522%253A%257B%2522WIKI_GITHUB_OWNER%2522%253A%2522%2524%257Binput%253Agithub_owner%257D%2522%252C%2522WIKI_GITHUB_REPO%2522%253A%2522%2524%257Binput%253Agithub_repo%257D%2522%257D%252C%2522inputs%2522%253A%255B%257B%2522type%2522%253A%2522promptString%2522%252C%2522id%2522%253A%2522github_owner%2522%252C%2522description%2522%253A%2522GitHub%2520username%2520or%2520org%2522%257D%252C%257B%2522type%2522%253A%2522promptString%2522%252C%2522id%2522%253A%2522github_repo%2522%252C%2522description%2522%253A%2522GitHub%2520repo%2520name%2520for%2520your%2520wiki%2522%257D%255D%257D) [![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=llm-wiki-mcp&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImxsbS13aWtpLW1jcCJdfQ)
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp/install%3F%257B%2522name%2522%253A%2522wiki-hub%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522-y%2522%252C%2522wiki-hub-mcp%2522%255D%252C%2522env%2522%253A%257B%2522WIKI_GITHUB_OWNER%2522%253A%2522%2524%257Binput%253Agithub_owner%257D%2522%252C%2522WIKI_GITHUB_REPO%2522%253A%2522%2524%257Binput%253Agithub_repo%257D%2522%257D%252C%2522inputs%2522%253A%255B%257B%2522type%2522%253A%2522promptString%2522%252C%2522id%2522%253A%2522github_owner%2522%252C%2522description%2522%253A%2522GitHub%2520username%2520or%2520org%2522%257D%252C%257B%2522type%2522%253A%2522promptString%2522%252C%2522id%2522%253A%2522github_repo%2522%252C%2522description%2522%253A%2522GitHub%2520repo%2520name%2520for%2520your%2520wiki%2522%257D%255D%257D) [![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=wiki-hub-mcp&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIndpa2ktaHViLW1jcCJdfQ==)
 
 ---
 
@@ -49,10 +49,10 @@ npx -y llm-wiki-mcp install
 <summary>Claude Code</summary>
 
 ```bash
-claude mcp add --scope user llm-wiki \
+claude mcp add --scope user wiki-hub \
   -e WIKI_GITHUB_OWNER=your-username \
   -e WIKI_GITHUB_REPO=my-wiki \
-  -- npx -y llm-wiki-mcp
+  -- npx -y wiki-hub-mcp
 ```
 
 Verify: `claude mcp list`
@@ -72,17 +72,17 @@ Add the standard config above. Restart Claude Desktop after saving.
 <details>
 <summary>Cursor</summary>
 
-Click the Install in Cursor badge above, then add your env vars in Settings > MCP > llm-wiki-mcp > Edit.
+Click the Install in Cursor badge above, then add your env vars in Settings > MCP > wiki-hub-mcp > Edit.
 
 Or create `~/.cursor/mcp.json` manually:
 
 ```json
 {
   "mcpServers": {
-    "llm-wiki": {
+    "wiki-hub": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "llm-wiki-mcp"],
+      "args": ["-y", "wiki-hub-mcp"],
       "env": {
         "WIKI_GITHUB_OWNER": "your-github-username",
         "WIKI_GITHUB_REPO": "my-wiki"
@@ -108,9 +108,9 @@ Use via Agent mode (Cmd+I, then Agent).
 ```json
 {
   "servers": {
-    "llm-wiki": {
+    "wiki-hub": {
       "command": "npx",
-      "args": ["-y", "llm-wiki-mcp"],
+      "args": ["-y", "wiki-hub-mcp"],
       "env": {
         "WIKI_GITHUB_OWNER": "your-github-username",
         "WIKI_GITHUB_REPO": "my-wiki"
@@ -134,10 +134,10 @@ Or create `.vscode/mcp.json` in your workspace:
 ```json
 {
   "servers": {
-    "llm-wiki": {
+    "wiki-hub": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "llm-wiki-mcp"],
+      "args": ["-y", "wiki-hub-mcp"],
       "env": {
         "WIKI_GITHUB_OWNER": "your-github-username",
         "WIKI_GITHUB_REPO": "my-wiki"
@@ -159,10 +159,10 @@ Requires the GitHub Copilot extension with Agent mode enabled (`github.copilot.c
 ```json
 {
   "context_servers": {
-    "llm-wiki": {
+    "wiki-hub": {
       "command": {
         "path": "npx",
-        "args": ["-y", "llm-wiki-mcp"],
+        "args": ["-y", "wiki-hub-mcp"],
         "env": {
           "WIKI_GITHUB_OWNER": "your-github-username",
           "WIKI_GITHUB_REPO": "my-wiki"
@@ -178,14 +178,14 @@ Requires the GitHub Copilot extension with Agent mode enabled (`github.copilot.c
 <details>
 <summary>Continue.dev</summary>
 
-Create `~/.continue/mcpServers/llm-wiki.yaml`:
+Create `~/.continue/mcpServers/wiki-hub.yaml`:
 
 ```yaml
-name: llm-wiki
+name: wiki-hub
 command: npx
 args:
   - "-y"
-  - llm-wiki-mcp
+  - wiki-hub-mcp
 env:
   WIKI_GITHUB_OWNER: your-github-username
   WIKI_GITHUB_REPO: my-wiki
@@ -218,17 +218,17 @@ Add the standard config above.
 <summary>Codex (OpenAI)</summary>
 
 ```bash
-codex mcp add llm-wiki npx "-y llm-wiki-mcp"
+codex mcp add wiki-hub npx "-y wiki-hub-mcp"
 ```
 
 Or edit `~/.codex/config.toml`:
 
 ```toml
-[mcp_servers.llm-wiki]
+[mcp_servers.wiki-hub]
 command = "npx"
-args = ["-y", "llm-wiki-mcp"]
+args = ["-y", "wiki-hub-mcp"]
 
-[mcp_servers.llm-wiki.env]
+[mcp_servers.wiki-hub.env]
 WIKI_GITHUB_OWNER = "your-github-username"
 WIKI_GITHUB_REPO = "my-wiki"
 ```
@@ -240,7 +240,7 @@ WIKI_GITHUB_REPO = "my-wiki"
 
 ```bash
 WIKI_GITHUB_OWNER=your-username WIKI_GITHUB_REPO=my-wiki \
-  npx @modelcontextprotocol/inspector npx -y llm-wiki-mcp
+  npx @modelcontextprotocol/inspector npx -y wiki-hub-mcp
 ```
 
 Open the printed URL. All 17 tools appear under the Tools tab.

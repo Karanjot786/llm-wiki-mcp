@@ -65,7 +65,7 @@ function installForClient(
         : IS_MAC
           ? join(HOME, 'Library', 'Application Support', 'Claude', 'claude_desktop_config.json')
           : join(HOME, '.config', 'claude', 'claude_desktop_config.json');
-      mergeServer(cfgFile, 'mcpServers', 'llm-wiki', base);
+      mergeServer(cfgFile, 'mcpServers', 'wiki-hub', base);
       console.log(`  ✓ Claude Desktop — ${cfgFile}`);
       break;
     }
@@ -80,7 +80,7 @@ function installForClient(
         console.log(`  ✓ Claude Code CLI — added via 'claude mcp add'`);
       } catch {
         const fallback = join(HOME, '.claude.json');
-        mergeServer(fallback, 'mcpServers', 'llm-wiki', base);
+        mergeServer(fallback, 'mcpServers', 'wiki-hub', base);
         console.log(`  ✓ Claude Code CLI — wrote to ${fallback} (claude CLI not in PATH)`);
       }
       break;
@@ -88,21 +88,21 @@ function installForClient(
 
     case 'cursor': {
       const cfgFile = join(HOME, '.cursor', 'mcp.json');
-      mergeServer(cfgFile, 'mcpServers', 'llm-wiki', baseWithType);
+      mergeServer(cfgFile, 'mcpServers', 'wiki-hub', baseWithType);
       console.log(`  ✓ Cursor — ${cfgFile}`);
       break;
     }
 
     case 'windsurf': {
       const cfgFile = join(HOME, '.codeium', 'windsurf', 'mcp_config.json');
-      mergeServer(cfgFile, 'servers', 'llm-wiki', base);
+      mergeServer(cfgFile, 'servers', 'wiki-hub', base);
       console.log(`  ✓ Windsurf — ${cfgFile}`);
       break;
     }
 
     case 'vscode': {
       const cfgFile = join(process.cwd(), '.vscode', 'mcp.json');
-      mergeServer(cfgFile, 'servers', 'llm-wiki', baseWithType);
+      mergeServer(cfgFile, 'servers', 'wiki-hub', baseWithType);
       console.log(`  ✓ VS Code — ${cfgFile} (current directory)`);
       break;
     }
@@ -113,7 +113,7 @@ function installForClient(
       if (typeof settings['context_servers'] !== 'object' || settings['context_servers'] === null) {
         settings['context_servers'] = {};
       }
-      (settings['context_servers'] as Record<string, unknown>)['llm-wiki'] = {
+      (settings['context_servers'] as Record<string, unknown>)['wiki-hub'] = {
         command: { path: cmd, args, env },
       };
       writeJson(settingsFile, settings);
@@ -144,7 +144,7 @@ function installForClient(
           ? join(HOME, 'Library', 'Application Support', 'Code', 'User', 'globalStorage', 'saoudrizwan.claude-dev', 'settings')
           : join(HOME, '.config', 'Code', 'User', 'globalStorage', 'saoudrizwan.claude-dev', 'settings');
       const cfgFile = join(base2, 'cline_mcp_settings.json');
-      mergeServer(cfgFile, 'mcpServers', 'llm-wiki', base);
+      mergeServer(cfgFile, 'mcpServers', 'wiki-hub', base);
       console.log(`  ✓ Cline — ${cfgFile}`);
       break;
     }
@@ -156,7 +156,7 @@ function installForClient(
           ? join(HOME, 'Library', 'Application Support', 'Code', 'User', 'globalStorage', 'rooveterinaryinc.roo-cline', 'settings')
           : join(HOME, '.config', 'Code', 'User', 'globalStorage', 'rooveterinaryinc.roo-cline', 'settings');
       const cfgFile = join(base2, 'cline_mcp_settings.json');
-      mergeServer(cfgFile, 'mcpServers', 'llm-wiki', base);
+      mergeServer(cfgFile, 'mcpServers', 'wiki-hub', base);
       console.log(`  ✓ Roo Code — ${cfgFile}`);
       break;
     }
@@ -166,7 +166,7 @@ function installForClient(
 export async function runInstaller(): Promise<void> {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
 
-  console.log('\nLLM Wiki MCP — Setup Wizard\n');
+  console.log('\nWiki Hub MCP — Setup Wizard\n');
   console.log('Configures the wiki server in your AI coding client.\n');
 
   CLIENTS.forEach((c, i) => console.log(`  ${i + 1}. ${c.name}`));
@@ -201,7 +201,7 @@ export async function runInstaller(): Promise<void> {
   const cachePath = cacheInput || defaultCache;
 
   console.log('\nHow should clients run this server?');
-  console.log('  1. npx -y llm-wiki-mcp  (recommended — always uses latest published version)');
+  console.log('  1. npx -y wiki-hub-mcp  (recommended — always uses latest published version)');
   console.log(`  2. node ${process.argv[1]}  (local path — use if you cloned this repo)\n`);
   const cmdChoice = (await rl.question('Choice [1]: ')).trim();
 
@@ -209,7 +209,7 @@ export async function runInstaller(): Promise<void> {
 
   const useNpx = cmdChoice !== '2';
   const cmd = useNpx ? 'npx' : 'node';
-  const args = useNpx ? ['-y', 'llm-wiki-mcp'] : [process.argv[1]!];
+  const args = useNpx ? ['-y', 'wiki-hub-mcp'] : [process.argv[1]!];
 
   const env: Record<string, string> = {
     WIKI_GITHUB_OWNER: owner,
