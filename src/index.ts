@@ -40,6 +40,12 @@ async function initWiki(gh: GitHubClient): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  if (process.argv[2] === 'install') {
+    const { runInstaller } = await import('./installer.js');
+    await runInstaller();
+    process.exit(0);
+  }
+
   const owner = requireEnv('WIKI_GITHUB_OWNER');
   const repo = requireEnv('WIKI_GITHUB_REPO');
   const cachePath = process.env['WIKI_CACHE_PATH']

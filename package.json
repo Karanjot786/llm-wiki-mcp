@@ -1,17 +1,40 @@
 {
-  "name": "llm-wiki-mcp-server",
+  "name": "llm-wiki-mcp",
   "version": "1.0.0",
-  "description": "MCP server implementing Karpathy's LLM Wiki pattern — GitHub-backed persistent wiki with SQLite search",
+  "description": "MCP server implementing Karpathy's LLM Wiki pattern. GitHub-backed persistent wiki with BM25 full-text search.",
+  "author": "Karanjot Singh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/karanjot786/llm-wiki-mcp.git"
+  },
+  "homepage": "https://github.com/karanjot786/llm-wiki-mcp#readme",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "llm-wiki-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build && npm test"
   },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "wiki",
+    "llm",
+    "knowledge-base",
+    "github"
+  ],
+  "license": "MIT",
   "engines": { "node": ">=18" },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
