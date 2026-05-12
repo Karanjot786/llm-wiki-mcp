@@ -48,7 +48,7 @@ The wiki is plain markdown with YAML frontmatter. Clone your wiki repo locally a
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - `gh` CLI authenticated (`gh auth login`)
 - A GitHub repo for your wiki: `gh repo create my-wiki --private`
 
