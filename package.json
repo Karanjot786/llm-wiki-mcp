@@ -39,7 +39,9 @@
     "github"
   ],
   "license": "MIT",
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
     "better-sqlite3": "^11.0.0",
@@ -47,15 +49,15 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@eslint/js": "^9.0.0",
+    "@eslint/js": "^10.0.1",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^25.7.0",
-    "eslint": "^9.0.0",
+    "eslint": "^10.3.0",
     "eslint-config-prettier": "^9.0.0",
     "prettier": "^3.0.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.0.0",
-    "vitest": "^2.0.0"
+    "vitest": "^4.1.6"
   }
 }

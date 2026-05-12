@@ -28,7 +28,7 @@ export class GitHubClient {
     } catch (err: unknown) {
       const e = err as { stderr?: string; message?: string };
       const stderr = e.stderr ?? e.message ?? String(err);
-      throw new Error(stderr);
+      throw new Error(stderr, { cause: err });
     }
   }
 
@@ -46,8 +46,8 @@ export class GitHubClient {
       return { content, sha: data.sha };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes('404')) throw new Error(`File not found: ${path}`);
-      throw new Error(ghError(msg, path));
+      if (msg.includes('404')) throw new Error(`File not found: ${path}`, { cause: err });
+      throw new Error(ghError(msg, path), { cause: err });
     }
   }
 
@@ -65,7 +65,7 @@ export class GitHubClient {
       return data.content.sha;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      throw new Error(ghError(msg, path));
+      throw new Error(ghError(msg, path), { cause: err });
     }
   }
 
@@ -79,7 +79,7 @@ export class GitHubClient {
       );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      throw new Error(ghError(msg, path));
+      throw new Error(ghError(msg, path), { cause: err });
     }
   }
 
@@ -92,7 +92,7 @@ export class GitHubClient {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes('404')) return [];
-      throw new Error(ghError(msg, dir));
+      throw new Error(ghError(msg, dir), { cause: err });
     }
   }
 
