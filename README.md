@@ -287,7 +287,7 @@ WIKI_GITHUB_OWNER=your-username WIKI_GITHUB_REPO=my-wiki \
   npx @modelcontextprotocol/inspector npx -y wiki-hub-mcp
 ```
 
-Open the printed URL. All 17 tools appear under the Tools tab.
+Open the printed URL. All 18 tools appear under the Tools tab.
 
 </details>
 
@@ -303,23 +303,24 @@ Open the printed URL. All 17 tools appear under the Tools tab.
 
 ---
 
-## Tools (17)
+## Tools (18)
 
 | Tool | Description |
 |---|---|
 | `wiki_create_page` | Create entity, concept, topic, or synthesis page |
 | `wiki_update_page` | Update existing page content |
-| `wiki_get_page` | Read page by path |
+| `wiki_get_page` | Read page by exact path or title string (fuzzy match) |
 | `wiki_list_pages` | List pages with type or tag filter |
-| `wiki_delete_page` | Soft-delete page |
+| `wiki_delete_page` | Soft-delete page; returns backlinks that need updating |
 | `wiki_add_source` | Fetch URL or text, store source page, return content for LLM |
 | `wiki_list_sources` | List ingested sources |
 | `wiki_get_source` | Read source summary page |
 | `wiki_search` | BM25 full-text search |
+| `wiki_get_relevant_pages` | Keyword-scored relevance search — find related pages before ingesting |
 | `wiki_sync_cache` | Refresh local search cache from GitHub |
 | `wiki_append_log` | Write to activity log |
 | `wiki_get_log` | Read recent log entries |
-| `wiki_lint` | Health check for orphans and missing citations |
+| `wiki_lint` | Health check: orphans, shallow pages, missing citations, broken links |
 | `wiki_get_stats` | Page counts by type, health score |
 | `wiki_flag_contradiction` | Record conflicting claims |
 | `wiki_list_contradictions` | List unresolved contradictions |
