@@ -295,11 +295,6 @@ LLM calls:
 6. wiki_append_log(operation="ingest", description="Added Attention Is All You Need paper")
 ```
 
-## Publishing
+## License
 
-```bash
-npm login
-npm publish
-```
-
-After publishing, users install with `npx -y llm-wiki-mcp install`. No clone needed.
+MIT
