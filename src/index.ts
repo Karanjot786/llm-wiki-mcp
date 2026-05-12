@@ -46,6 +46,15 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
+  const missingOwner = !process.env['WIKI_GITHUB_OWNER'];
+  const missingRepo = !process.env['WIKI_GITHUB_REPO'];
+  if ((missingOwner || missingRepo) && process.stdin.isTTY) {
+    console.error('WIKI_GITHUB_OWNER or WIKI_GITHUB_REPO not set. Launching setup wizard...\n');
+    const { runInstaller } = await import('./installer.js');
+    await runInstaller();
+    process.exit(0);
+  }
+
   const owner = requireEnv('WIKI_GITHUB_OWNER');
   const repo = requireEnv('WIKI_GITHUB_REPO');
   const cachePath = process.env['WIKI_CACHE_PATH']
