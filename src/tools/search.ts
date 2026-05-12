@@ -102,6 +102,55 @@ Error Handling:
   );
 
   server.registerTool(
+    'wiki_get_relevant_pages',
+    {
+      title: 'Get Relevant Pages',
+      description: `Find pages most relevant to a topic using keyword scoring. Use this before ingesting a new source to see what already exists on the topic — avoids duplicate pages.
+
+Different from wiki_search (BM25 full-text): this uses weighted keyword scoring (title matches = 3x, body = 1x) and returns a relevance score.
+
+Args:
+  - topic: Topic or concept to find relevant pages for
+  - limit: Max results (default 5, max 20)
+
+Returns:
+  {
+    "topic": string,
+    "count": number,
+    "results": [
+      { "path": string, "title": string, "type": string, "score": number, "excerpt": string }
+    ],
+    "note": string  // present when count=0
+  }`,
+      inputSchema: z.object({
+        topic: z.string().min(1).max(500).describe('Topic or concept to find relevant pages for'),
+        limit: z.number().int().min(1).max(20).default(5).optional(),
+      }).strict(),
+      outputSchema: z.object({
+        topic: z.string(),
+        count: z.number(),
+        results: z.array(z.object({ path: z.string(), title: z.string(), type: z.string(), score: z.number(), excerpt: z.string() })),
+        note: z.string().optional(),
+      }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ topic, limit }) => {
+      try {
+        const results = cache.scorePagesByKeywords(topic, limit ?? 5);
+        const output = {
+          topic,
+          count: results.length,
+          results,
+          ...(results.length === 0 && { note: 'No relevant pages found. Safe to create new pages on this topic.' }),
+        };
+        return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
+      } catch (err) {
+        return { content: [{ type: 'text' as const, text: formatError(err) }] };
+      }
+    }
+  );
+
+  server.registerTool(
     'wiki_sync_cache',
     {
       title: 'Sync Wiki Cache',

@@ -27,6 +27,8 @@ Checks performed:
   - Orphan pages with no inbound links (rule: no-inbound-links, excludes synthesis pages)
   - Pages marked needs_sources in status (rule: needs-sources-status)
   - Unresolved contradictions in contradictions.md (rule: unresolved-contradictions)
+  - Pages with < 100 words in body (rule: shallow-content)
+  - Concept/entity/topic pages with no outbound links (rule: no-outbound-links)
 
 Returns:
   {
@@ -116,6 +118,37 @@ Error Handling:
             });
           }
         } catch { /* no contradictions file yet — fine */ }
+
+        // Rule: shallow-content — pages with < 100 words in body
+        for (const page of allPages) {
+          const body = page.content.replace(/^---[\s\S]*?---\n?/, '');
+          const wordCount = body.trim().split(/\s+/).filter(Boolean).length;
+          if (wordCount > 0 && wordCount < 100) {
+            issues.push({
+              rule: 'shallow-content',
+              severity: 'warning',
+              path: page.path,
+              message: `Page "${page.title}" has only ${wordCount} words. Consider expanding.`,
+            });
+          }
+        }
+
+        // Rule: no-outbound-links — concept/entity/topic pages with no [[links]] at all
+        // Regex handles [[Name]] and [[Name|Display Text]] wikilink syntax
+        const wikilinkRe = /\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/;
+        const mdLinkRe = /\]\(pages\//;
+        const linkableTypes: PageType[] = ['concept', 'entity', 'topic'];
+        for (const page of allPages) {
+          if (!linkableTypes.includes(page.type as PageType)) continue;
+          if (!wikilinkRe.test(page.content) && !mdLinkRe.test(page.content)) {
+            issues.push({
+              rule: 'no-outbound-links',
+              severity: 'warning',
+              path: page.path,
+              message: `Page "${page.title}" has no links to other wiki pages. Add [[PageName]] links to connect it.`,
+            });
+          }
+        }
 
         const healthScore = computeHealthScore(issues, allPages.length);
         const summary = issues.length === 0

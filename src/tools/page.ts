@@ -40,6 +40,10 @@ function now(): string {
   return new Date().toISOString();
 }
 
+function canonicalize(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
 // ── Tool Registration ─────────────────────────────────────────────────────────
 
 export function registerPageTools(server: McpServer, gh: GitHubClient, cache: WikiCache): void {
@@ -170,14 +174,16 @@ Returns: { path, sha, message } on success.`,
     'wiki_get_page',
     {
       title: 'Get Wiki Page',
-      description: `Read a wiki page by path. Returns full markdown content plus parsed frontmatter.
+      description: `Read a wiki page by exact path OR by title. Returns full markdown content plus parsed frontmatter.
 
 Args:
-  - path: Full page path e.g. "pages/concepts/machine-learning.md"
+  - path_or_title: Exact path like "pages/concepts/machine-learning.md" OR a title string like "Machine Learning"
+
+If given a title string, fuzzy-matches against the cache (canonicalized, case-insensitive). Falls back to a contains match if exact match fails.
 
 Returns: { path, frontmatter, content, sha }`,
       inputSchema: z.object({
-        path: z.string().regex(/^[a-zA-Z0-9_./-]+$/, 'Invalid path characters').refine(p => !p.includes('..'), 'Path traversal not allowed').describe('Full page path'),
+        path_or_title: z.string().min(1).describe('Exact path like pages/concepts/foo.md OR a page title like "Transformer Architecture"'),
       }).strict(),
       outputSchema: z.object({
         path: z.string(),
@@ -187,11 +193,30 @@ Returns: { path, frontmatter, content, sha }`,
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ path }) => {
+    async ({ path_or_title }) => {
       try {
-        const { content: raw, sha } = await gh.readFile(path);
+        let resolvedPath: string;
+        const looksLikePath = path_or_title.startsWith('pages/') || path_or_title.startsWith('WIKI_') || path_or_title.endsWith('.md');
+        if (looksLikePath) {
+          if (!/^[a-zA-Z0-9_./-]+$/.test(path_or_title) || path_or_title.includes('..')) {
+            return { content: [{ type: 'text' as const, text: 'Invalid path characters or path traversal detected' }], isError: true };
+          }
+          resolvedPath = path_or_title;
+        } else {
+          const needle = canonicalize(path_or_title);
+          const all = cache.listAll();
+          let match = all.find(p => canonicalize(p.title) === needle);
+          if (!match) {
+            match = all.find(p => canonicalize(p.title).includes(needle) || needle.includes(canonicalize(p.title)));
+          }
+          if (!match) {
+            return { content: [{ type: 'text' as const, text: `No page found matching title "${path_or_title}". Try wiki_search or wiki_list_pages.` }], isError: true };
+          }
+          resolvedPath = match.path;
+        }
+        const { content: raw, sha } = await gh.readFile(resolvedPath);
         const { frontmatter, content } = parsePage(raw);
-        const output = { path, sha, frontmatter: frontmatter as unknown as Record<string, unknown>, content };
+        const output = { path: resolvedPath, sha, frontmatter: frontmatter as unknown as Record<string, unknown>, content };
         return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
@@ -254,12 +279,19 @@ Args:
   - path: Full page path to delete
   - reason: Why this page is being deleted (logged)
 
-Returns: { path, message } on success.`,
+Returns: { path, message, affected_pages, affected_count, note }
+affected_pages lists any pages that still link to the deleted page — update or remove those links.`,
       inputSchema: z.object({
         path: z.string().regex(/^[a-zA-Z0-9_./-]+$/, 'Invalid path characters').refine(p => !p.includes('..'), 'Path traversal not allowed').describe('Full page path to delete'),
         reason: z.string().describe('Reason for deletion'),
       }).strict(),
-      outputSchema: z.object({ path: z.string(), message: z.string() }),
+      outputSchema: z.object({
+        path: z.string(),
+        message: z.string(),
+        affected_pages: z.array(z.string()),
+        affected_count: z.number(),
+        note: z.string(),
+      }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     },
     async ({ path, reason }) => {
@@ -270,7 +302,17 @@ Returns: { path, message } on success.`,
         const newRaw = buildPageContent(fm, content);
         await gh.writeFile(path, newRaw, `wiki: delete "${frontmatter.title}" — ${reason}`, sha);
         cache.remove(path);
-        const output = { path, message: `Soft-deleted ${path}` };
+        const pageTitle = frontmatter.title ?? path.split('/').pop()?.replace('.md', '') ?? path;
+        const affected = cache.findBacklinks(pageTitle);
+        const output = {
+          path,
+          message: `Soft-deleted ${path}`,
+          affected_pages: affected,
+          affected_count: affected.length,
+          note: affected.length > 0
+            ? `${affected.length} page(s) still link to this page. Update or remove those links.`
+            : 'No other pages link to this page.',
+        };
         return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
       } catch (err) {
         return { content: [{ type: 'text' as const, text: formatError(err) }] };
