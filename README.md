@@ -1,7 +1,7 @@
 # wiki-hub-mcp
 
 [![npm version](https://img.shields.io/npm/v/wiki-hub-mcp.svg)](https://www.npmjs.com/package/wiki-hub-mcp)
-[![CI](https://img.shields.io/github/actions/workflow/status/karanjot786/wiki-hub-mcp/ci.yml?branch=main&label=CI)](https://github.com/karanjot786/wiki-hub-mcp/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/Karanjot786/llm-wiki-mcp/ci.yml?branch=main&label=CI)](https://github.com/Karanjot786/llm-wiki-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Give your LLM a persistent, searchable wiki backed by a GitHub repo. Based on [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f): your LLM reads sources and writes structured pages to your repo. You ask questions; your wiki searches and answers. No RAG pipeline, no vector database. Your knowledge grows as plain markdown files you own.
