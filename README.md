@@ -4,13 +4,13 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/karanjot786/wiki-hub-mcp/ci.yml?branch=main&label=CI)](https://github.com/karanjot786/wiki-hub-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Build a personal wiki with your LLM. Based on [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f): your LLM reads sources and writes structured pages to a GitHub repo. You ask questions; it searches and synthesizes. No RAG pipeline, no vector database. The knowledge builds up as plain markdown files you own.
+Give your LLM a persistent, searchable wiki backed by a GitHub repo. Based on [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f): your LLM reads sources and writes structured pages to your repo. You ask questions; your wiki searches and answers. No RAG pipeline, no vector database. Your knowledge grows as plain markdown files you own.
 
 ## The idea
 
-RAG pipelines re-derive the same knowledge every time you ask a question. This MCP takes the opposite approach: your LLM reads sources once and compiles what it learns into a persistent wiki stored in a GitHub repo you own.
+RAG pipelines re-derive the same knowledge every time you ask a question. This MCP takes a different approach: your LLM reads sources once and compiles the knowledge into a persistent wiki stored in a GitHub repo you own.
 
-The wiki grows over time. Each page links to others. The LLM searches what's already there before reading anything new. Knowledge compounds instead of evaporating.
+The wiki grows over time. Each page links to others. The LLM searches what's already there before reading anything new. Knowledge compounds with each session.
 
 | Layer | What it is | Where it lives |
 |---|---|---|
@@ -35,16 +35,16 @@ Good fit:
 
 Not the right tool:
 - One-off questions where you won't return to the topic
-- Real-time data (prices, news) — wiki knowledge gets stale
+- Real-time data like prices or news; wiki knowledge gets stale
 - Fully automated pipelines with no human in the loop
 
 ### Why it works
 
-LLMs don't get bored. They'll read the same source ten times to extract something new from it. A human wiki editor gives up after the third revision. The LLM doesn't.
+LLMs don't get bored. They read the same source ten times and extract more detail each pass. A human wiki editor gives up after the third revision. Your LLM keeps going.
 
 ### Obsidian integration
 
-The wiki is plain markdown with YAML frontmatter. Clone your wiki repo locally and open it as an Obsidian vault. The `wiki_search` BM25 index and Obsidian's search are complementary — use `wiki_search` in Claude, Obsidian for browsing.
+The wiki is plain markdown with YAML frontmatter. Clone your wiki repo locally and open the folder as an Obsidian vault. Use `wiki_search` in Claude for BM25 full-text search. Use Obsidian for browsing and graph view.
 
 ## Prerequisites
 
@@ -54,7 +54,7 @@ The wiki is plain markdown with YAML frontmatter. Clone your wiki repo locally a
 
 ## Installation
 
-This config works in most clients. Add it to your MCP config file:
+Add this config to your MCP config file:
 
 ```json
 {
@@ -311,12 +311,12 @@ Open the printed URL. All 18 tools appear under the Tools tab.
 | `wiki_update_page` | Update existing page content |
 | `wiki_get_page` | Read page by exact path or title string (fuzzy match) |
 | `wiki_list_pages` | List pages with type or tag filter |
-| `wiki_delete_page` | Soft-delete page; returns backlinks that need updating |
+| `wiki_delete_page` | Soft-delete page; returns backlinks needing updates |
 | `wiki_add_source` | Fetch URL or text, store source page, return content for LLM |
 | `wiki_list_sources` | List ingested sources |
 | `wiki_get_source` | Read source summary page |
 | `wiki_search` | BM25 full-text search |
-| `wiki_get_relevant_pages` | Keyword-scored relevance search — find related pages before ingesting |
+| `wiki_get_relevant_pages` | Keyword-scored relevance search; find related pages before ingesting |
 | `wiki_sync_cache` | Refresh local search cache from GitHub |
 | `wiki_append_log` | Write to activity log |
 | `wiki_get_log` | Read recent log entries |
@@ -342,7 +342,7 @@ LLM calls:
 
 ## Credits
 
-Karpathy's [LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) originated the pattern. Vannevar Bush described the concept in 1945 as the [Memex](https://en.wikipedia.org/wiki/Memex) — "a device in which an individual stores all his books, records, and communications, and which is mechanized so that it may be consulted with exceeding speed and flexibility."
+Karpathy's [LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) originated the pattern. Vannevar Bush described the concept in 1945 as the [Memex](https://en.wikipedia.org/wiki/Memex): "a device in which an individual stores all his books, records, and communications, and which is mechanized so that it may be consulted with exceeding speed and flexibility."
 
 ## License
 
