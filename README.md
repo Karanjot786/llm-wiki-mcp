@@ -1,6 +1,50 @@
 # wiki-hub-mcp
 
+[![npm version](https://img.shields.io/npm/v/wiki-hub-mcp.svg)](https://www.npmjs.com/package/wiki-hub-mcp)
+[![CI](https://github.com/karanjot786/wiki-hub-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/karanjot786/wiki-hub-mcp/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Build a personal wiki with your LLM. Based on [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f): your LLM reads sources and writes structured pages to a GitHub repo. You ask questions; it searches and synthesizes. No RAG pipeline, no vector database. The knowledge builds up as plain markdown files you own.
+
+## The idea
+
+RAG pipelines re-derive the same knowledge every time you ask a question. This MCP takes the opposite approach: your LLM reads sources once and compiles what it learns into a persistent wiki stored in a GitHub repo you own.
+
+The wiki grows over time. Each page links to others. The LLM searches what's already there before reading anything new. Knowledge compounds instead of evaporating.
+
+| Layer | What it is | Where it lives |
+|---|---|---|
+| Raw sources | Articles, papers, transcripts | `pages/sources/` |
+| Wiki | Entities, concepts, topics, syntheses | `pages/entities/`, `pages/concepts/`, `pages/topics/` |
+| Schema | Naming rules, page templates, ingest workflow | `WIKI_SCHEMA.md` |
+
+Three operations drive the whole system:
+
+| Operation | What the LLM does |
+|---|---|
+| Ingest | Calls `wiki_add_source`, reads the content, creates or updates pages |
+| Query | Calls `wiki_search`, reads the results, answers from compiled knowledge |
+| Lint | Calls `wiki_lint`, finds orphan pages and broken links, fixes them |
+
+### When to use this
+
+Good fit:
+- You return to a topic repeatedly (research areas, technologies, people)
+- You want to build up knowledge across many sessions
+- You prefer owning your knowledge in plain markdown files
+
+Not the right tool:
+- One-off questions where you won't return to the topic
+- Real-time data (prices, news) — wiki knowledge gets stale
+- Fully automated pipelines with no human in the loop
+
+### Why it works
+
+LLMs don't get bored. They'll read the same source ten times to extract something new from it. A human wiki editor gives up after the third revision. The LLM doesn't.
+
+### Obsidian integration
+
+The wiki is plain markdown with YAML frontmatter. Clone your wiki repo locally and open it as an Obsidian vault. The `wiki_search` BM25 index and Obsidian's search are complementary — use `wiki_search` in Claude, Obsidian for browsing.
 
 ## Prerequisites
 
@@ -294,6 +338,10 @@ LLM calls:
 5. wiki_update_page(path="pages/topics/nlp.md", ...)
 6. wiki_append_log(operation="ingest", description="Added Attention Is All You Need paper")
 ```
+
+## Credits
+
+Karpathy's [LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) originated the pattern. Vannevar Bush described the concept in 1945 as the [Memex](https://en.wikipedia.org/wiki/Memex) — "a device in which an individual stores all his books, records, and communications, and which is mechanized so that it may be consulted with exceeding speed and flexibility."
 
 ## License
 
