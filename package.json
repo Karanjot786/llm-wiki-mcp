@@ -24,6 +24,10 @@
     "clean": "rm -rf dist",
     "test": "vitest run",
     "test:watch": "vitest",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write src",
+    "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
@@ -43,10 +47,15 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "prettier": "^3.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
+    "typescript-eslint": "^8.0.0",
     "vitest": "^2.0.0"
   }
 }

@@ -121,7 +121,7 @@ Returns: Array of recent log entry strings.`,
         entries = entries.slice(0, limit);
         const output = { count: entries.length, entries };
         return { content: [{ type: 'text' as const, text: JSON.stringify(output) }], structuredContent: output };
-      } catch (err) {
+      } catch {
         return { content: [{ type: 'text' as const, text: `No log found yet. Call wiki_append_log to create it.` }] };
       }
     }

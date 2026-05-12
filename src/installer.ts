@@ -1,5 +1,5 @@
 import { createInterface } from 'node:readline/promises';
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir, platform } from 'node:os';
 import { join, dirname } from 'node:path';
 import { execSync } from 'node:child_process';
